@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shopping_list/data/list.dart';
 import 'package:shopping_list/main.dart';
 import 'package:shopping_list/models/list_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AddNewList extends StatefulWidget {
   AddNewList({super.key, required this.id});
@@ -16,13 +18,33 @@ class _AddNewListState extends State<AddNewList> {
   var title = '';
   var detail = '';
   List<ListModel> list = [];
+  var isSending = false;
 
-  void validate() {
+  void validate() async {
     if (_form.currentState!.validate()) {
       _form.currentState!.save();
+      setState(() {
+        isSending = true;
+      });
 
-      print(title);
-      print(detail);
+      final url = Uri.https('shopping-list-43315-default-rtdb.firebaseio.com',
+          'shopping-list.json');
+      final response = await http.post(url,
+          headers: {'Content-Type': 'Application/json'},
+          body: json.encode({'title': title, 'detail': detail}));
+
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      if (!context.mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(
+          ListModel(id: responseData['name'], title: title, detail: detail));
+
+      print('The response data = ${responseData}');
+
+      //print(detail);
     }
   }
 
@@ -94,15 +116,25 @@ class _AddNewListState extends State<AddNewList> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                        onPressed: () {
-                          _form.currentState!.reset();
-                        },
+                        onPressed: isSending
+                            ? null
+                            : () {
+                                _form.currentState!.reset();
+                              },
                         child: const Text('Reset')),
                     ElevatedButton(
-                        onPressed: () {
-                          validate();
-                        },
-                        child: const Text('Save List')),
+                        onPressed: isSending
+                            ? null
+                            : () {
+                                validate();
+                              },
+                        child: isSending
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(),
+                              )
+                            : const Text('Save Note')),
                   ],
                 ),
               ],

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:shopping_list/screens/add_new_list.dart';
+import 'package:shopping_list/screens/view_note.dart';
 
 class ListItem extends StatelessWidget {
-  ListItem({super.key, required this.title, required this.id});
+  ListItem({
+    super.key,
+    required this.title,
+    required this.id,
+  });
   String title;
   String id;
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => AddNewList(
+            builder: (context) => ViewNote(
                   id: id,
                 )));
       },
